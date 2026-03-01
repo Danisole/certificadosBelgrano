@@ -90,9 +90,9 @@ function generarPDF() {
         doc.rect(10, yBase, 190, 135); 
         
         // Definimos dimensiones del logo
-        const logoAncho = 40; 
+        const logoAncho = 45; 
         const logoAlto = 10;
-        const margenDerecho = 15; // Distancia desde el borde derecho de la hoja
+        const margenDerecho = 18; // Distancia desde el borde derecho de la hoja
         const xLogo = 210 - margenDerecho - logoAncho; // Resultado: 170
 
        
