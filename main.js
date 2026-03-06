@@ -65,13 +65,13 @@ function generarPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4'); 
     
-    // Captura segura de datos (si el ID no existe, devuelve vacío en vez de romper todo)
+    // Captura segura de datos
     const idsSeleccionados = $('#selectProfesores').val();
     const motivoRaw = document.getElementById('motivo')?.value || "Jornada Institucional";
     const motivo = capitalizarPrimeraLetra(motivoRaw);
     
     const fJornada = document.getElementById('fechaJornada')?.value || "";
-    const hJornada = document.getElementById('horaJornadaManual')?.value || ""; // <--- Captura protegida
+    const hJornada = document.getElementById('horaJornadaManual')?.value || ""; 
     
     const fEmision = document.getElementById('fechaEmision')?.value || "";
     const hora = document.getElementById('hora')?.value || "";
@@ -85,20 +85,27 @@ function generarPDF() {
 
     idsSeleccionados.forEach((id, index) => {
         const profeData = listaProfesores.find(p => p.id == id);
-        if (!profeData) return; // Saltear si no encuentra al profe
+        if (!profeData) return; 
 
         const yBase = (contadorEnHoja === 0) ? 10 : 150;
 
-        // --- DIBUJO DEL MARCO ---
+        // --- DISEÑO DEL CERTIFICADO ---
         doc.setDrawColor(0);
         doc.setLineWidth(0.5);
         doc.rect(10, yBase, 190, 135); 
 
-        // --- LOGO ---
+        // --- REINSERCIÓN DEL LOGO (Corregido el nombre de variable) ---
+        const logoAncho = 45; 
+        const logoAlto = 10;
+        const margenDerecho = 18;
+        const xLogo = 210 - margenDerecho - logoAncho;
+
         try {
-            const xLogo = 210 - 18 - 45; 
-            doc.addImage(LOGO_BASE64, 'PNG', xLogo, yBase + 10, 45, 10);
-        } catch (e) { console.error("Logo no encontrado"); }
+            // Verifica que 'logoBase64' exista en tu archivo assets.js
+            doc.addImage(logoBase64, 'PNG', xLogo, yBase + 10, logoAncho, logoAlto);
+        } catch (e) {
+            console.error("Error al cargar el logo: Asegúrate que la variable se llame logoBase64", e);
+        }
 
         // --- MEMBRETE ---
         doc.setFontSize(8).setFont(undefined, 'bold');
@@ -108,7 +115,7 @@ function generarPDF() {
         doc.text("DIRECCIÓN DE EDUCACIÓN SECUNDARIA, ORIENTADA Y ARTISTICA", 15, yBase + 19);
         doc.text("ESCUELA DE COMERCIO GRAL. MANUEL BELGRANO", 15, yBase + 22);
 
-        // --- TÍTULOS ---
+        // --- CUERPO ---
         doc.setFontSize(18).setFont(undefined, 'bold');
         doc.text("CERTIFICADO DE ASISTENCIA", 105, yBase + 35, { align: "center" });
         
@@ -122,20 +129,22 @@ function generarPDF() {
         doc.setFontSize(13).setFont(undefined, 'normal');
         doc.text(`D.N.I. Nº: ${profeData.dni}`, 105, yBase + 83, { align: "center" });
 
-        // --- DETALLES DINÁMICOS ---
+        // Detalles de la jornada
         const textoMotivo = doc.splitTextToSize(`Asistió a: ${motivo}`, 170);
         doc.text(textoMotivo, 105, yBase + 95, { align: "center" });
 
         // Formatear fecha para el PDF (DD/MM/AAAA)
         const fechaLinda = fJornada.split('-').reverse().join('/');
         let lineaInfo = `Realizada el día: ${fechaLinda}`;
-        if (hJornada) lineaInfo += ` en el horario de ${hJornada}`;
-        
+        if (hJornada) {
+            lineaInfo += ` en horario de ${hJornada}`;
+        }
         doc.text(lineaInfo, 105, yBase + 108, { align: "center" });
         
-        // PIE DE PÁGINA
+        // Pie de página
         doc.setFontSize(9);
-        doc.text(`Emitido el: ${fEmision.split('-').reverse().join('/')} a las ${hora} hs.`, 30, yBase + 130);
+        const fechaEmiLinda = fEmision.split('-').reverse().join('/');
+        doc.text(`Emitido el: ${fechaEmiLinda} a las ${hora} hs.`, 30, yBase + 130, { align: "left" });
         doc.line(130, yBase + 125, 180, yBase + 125);
         doc.text("Firma Dirección", 155, yBase + 129, { align: "center" });
 
